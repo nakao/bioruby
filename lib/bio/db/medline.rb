@@ -318,6 +318,41 @@ class MEDLINE < NCBIDB
   #   incomplete. Use PmLink for the complete set of available links.
   #   [PmLink] http://www.ncbi.nlm.nih.gov/entrez/utils/pmlink_help.html
 
+  # RDF/Turtle output formatter
+  def output_ttl
+    require 'erb'
+    templ_file = "#{__FILE__.sub('.rb','')}/medline.ttl.erb"
+    templ = File.open(templ_file).read
+    t = ERB.new(templ, nil, 2)
+    @obj = self
+    t.result(binding)
+  end
+
+  attr :prefix
+  
+  def prefix
+    @prefix || "http://togows.dbcls.jp/entry/ncbi-pubmed"
+  end
+  
+  def uri
+    "<#{prefix}/#{pmid}>"
+  end
+  
+  def predicate(m)
+    "<http://togows.dbcls.jp/ontology/ncbi-pubmed##{m}>"
+  end
+    
+  
+  private 
+  
+  def rdf_subject_uri
+    "<http://togows.dbcls.jp/entry/ncbi-pubmed/#{self.pmid}>"
+  end
+  
+  def rdf_predicate_uri(field)
+    "<http://www.nlm.nih.gov/bsd/mms/medlineelements.html##{field.downcase}>" 
+    "<http://togows.dbcls.jp/entry/ncbi-pubmed##{field.downcase}>" 
+  end
 end # MEDLINE
 
 end # Bio

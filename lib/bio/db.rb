@@ -186,6 +186,12 @@ class DB
     truncate(field.gsub(/^.{0,#{@tagsize}}/,''))
   end
 
+  
+  # Facade method for various output methods.
+  # Inherited classes can define output methods such as "obj.output_xml" for XML output.
+  def output(format_type)
+    send("output_#{format_type.to_s.downcase}")
+  end
 
   private
 

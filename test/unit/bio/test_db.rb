@@ -95,4 +95,34 @@ END
     def test_p_entry2hash
     end
   end
+
+
+  class TestDBOutput < Test::Unit::TestCase
+    class ADB < Bio::DB
+      def initialize(str)
+        @entry_id,@body = str.split(":")
+      end
+      def output_fasta
+        ">#{@entry_id}\n#{@body}"
+      end
+    end
+
+    def setup
+      @obj = ADB.new("ENTRY_ID:ACGT")
+    end
+    
+    def test_output
+      assert_equal(">ENTRY_ID\nACGT", @obj.output("fasta"))
+    end
+
+    def test_output_as_symbol
+      assert_equal(">ENTRY_ID\nACGT", @obj.output(:fasta))
+    end
+
+    def test_output_nomethoderror
+      assert_raise(NoMethodError) { @obj.output(:blast) }
+    end
+
+  end
+
 end

@@ -32,6 +32,12 @@ module Bio
     def test_authors_with_last_name_all_caps
       assert_equal(["GARTLER, S. M."], Bio::MEDLINE.new("AU  - GARTLER SM").authors)
     end
+
+    def test_output_n3
+      obj = Bio::MEDLINE.new(AGILE)
+      str = obj.output_n3
+      assert_equal('', str)
+    end
     
     AGILE = <<-EOMED
 PMID- 16734914

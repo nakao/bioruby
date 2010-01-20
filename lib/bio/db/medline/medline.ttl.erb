@@ -1,0 +1,48 @@
+<% def c(str);  str.chomp.gsub("\n", ' '); end %>
+<%= @obj.uri %>	<%= @obj.predicate('pmid') %>	"<%=c @obj.pubmed['PMID'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('crdt') %>	"<%=c @obj.pubmed['CRDT'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('edat') %>	"<%=c @obj.pubmed['EDAT'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('mhda') %>	"<%=c @obj.pubmed['MHDA'] %>" .
+<% @obj.pubmed['gr'].chomp.split("\n").each do |gr| %>
+<%= @obj.uri %>	<%= @obj.predicate('gr') %>	"<%=c gr %>" .
+<% end %>
+<%= @obj.uri %>	<%= @obj.predicate('stat') %>	"<%=c @obj.pubmed['STAT'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('ti') %>	"<%=c @obj.pubmed['TI'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('ab') %>	"<%=c @obj.pubmed['AB'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('pg') %>	"<%=c @obj.pubmed['PG'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('dp') %>	"<%=c @obj.pubmed['DP'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('ta') %>	"<%=c @obj.pubmed['TA'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('sb') %>	"<%=c @obj.pubmed['SB'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('dep') %>	"<%=c @obj.pubmed['DEP'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('pt') %>	"<%=c @obj.pubmed['PT'] %>" .
+<% @obj.pubmed['FAU'].chomp.split("\n").each do |fau| %>
+<%= @obj.uri %>	<%= @obj.predicate('fau') %>	"<%=c fau %>" .
+<% end %>
+<% @obj.pubmed['AU'].chomp.split("\n").each do |au| %>
+<%= @obj.uri %>	<%= @obj.predicate('au') %>	"<%=c au %>" .
+<% end %>
+<% @obj.pubmed['PHST'].chomp.split("\n").each do |phst| %>
+<%= @obj.uri %>	<%= @obj.predicate('phst') %>	"<%=c phst %>" .
+<% end %>
+<% @obj.pubmed['MH'].chomp.split("\n").each do |mh| %>
+<%= @obj.uri %>	<%= @obj.predicate('mh') %>	"<%=c mh %>" .
+<% end %>
+<%= @obj.uri %>	<%= @obj.predicate('jid') %>	"<%=c @obj.pubmed['JID'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('dcom') %>	"<%=c @obj.pubmed['DCOM'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('so') %>	"<%=c @obj.pubmed['SO'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('pst') %>	"<%=c @obj.pubmed['PST'] %>" .
+<% @obj.pubmed['AID'].chomp.split("\n").each do |aid| %>
+<%= @obj.uri %>	<%= @obj.predicate('aid') %>	"<%=c aid %>" .
+<% end %>
+<%= @obj.uri %>	<%= @obj.predicate('pmc') %>	"<%=c @obj.pubmed['PMC'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('pl') %>	"<%=c @obj.pubmed['PL'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('lr') %>	"<%=c @obj.pubmed['LR'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('own') %>	"<%=c @obj.pubmed['OWN'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('da') %>	"<%=c @obj.pubmed['DA'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('vi') %>	"<%=c @obj.pubmed['VI'] %>" .
+<% @obj.pubmed['OID'].chomp.split("\n").each do |oid| %>
+<%= @obj.uri %>	<%= @obj.predicate('oid') %>	"<%= oid %>" .
+<% end %>
+<%= @obj.uri %>	<%= @obj.predicate('jt') %>	"<%=c @obj.pubmed['JT'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('la') %>	"<%=c @obj.pubmed['LA'] %>" .
+<%= @obj.uri %>	<%= @obj.predicate('is') %>	"<%=c @obj.pubmed['IS'] %>" .
