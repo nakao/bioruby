@@ -318,44 +318,26 @@ class MEDLINE < NCBIDB
   #   incomplete. Use PmLink for the complete set of available links.
   #   [PmLink] http://www.ncbi.nlm.nih.gov/entrez/utils/pmlink_help.html
 
-  # RDF/Turtle output formatter
+  
+  # A generic RDF subject URI at the TogoWS REST
+  @prefix = "http://togows.dbcls.jp/entry/ncbi-pubmed"
+
+  # Format the output in the RDF/Turtle (.ttl).
   def output_ttl
-    require 'erb'
-    templ_file = "#{__FILE__.sub('.rb','')}/medline.ttl.erb"
-    templ = File.open(templ_file).read
-    t = ERB.new(templ, nil, 2)
-    @obj = self
-    t.result(binding)
+    @templ_file = template_file(__FILE__)
+    render(binding)
   end
 
-  attr :prefix
-  
-  def prefix
-    @prefix || "http://togows.dbcls.jp/entry/ncbi-pubmed"
-  end
-  
-  def uri
-    "<#{prefix}/#{pmid}>"
-  end
-  
-  def predicate(m)
-    "<http://togows.dbcls.jp/ontology/ncbi-pubmed##{m}>"
+  # entry_id API
+  alias :pmid :entry_id
+
+  # Generate a generic RDF predicate URI at the TogoWS REST.
+  def predicate(field_name)
+    "<http://togows.dbcls.jp/ontology/ncbi-pubmed##{field_name}>"
   end
     
-  
   private 
-  
-  def rdf_subject_uri
-    "<http://togows.dbcls.jp/entry/ncbi-pubmed/#{self.pmid}>"
-  end
-  
-  def rdf_predicate_uri(field)
-    "<http://www.nlm.nih.gov/bsd/mms/medlineelements.html##{field.downcase}>" 
-    "<http://togows.dbcls.jp/entry/ncbi-pubmed##{field.downcase}>" 
-  end
+
 end # MEDLINE
 
 end # Bio
-
-
-

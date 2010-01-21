@@ -187,14 +187,49 @@ class DB
   end
 
   
-  # Facade method for various output methods.
+  # Facade method for various output formatting.
   # Inherited classes can define output methods such as "obj.output_xml" for XML output.
   def output(format_type)
     send("output_#{format_type.to_s.downcase}")
   end
 
+  # API for the RDF subject URI. 
+  # Methods both prefix and entry_id should be defined at the inherited class
+  def uri
+    "<#{prefix}/#{entry_id}>"
+  end
+
+  # URI prefix
+  @prefix = nil
+  attr_accessor :prefix
+
+
+  
   private
 
+  # Discover the appropriate ERB template file of the specified file format.
+  def template_file(file__)
+    format_type = caller.first.scan(/`(.*)'/).to_s.sub('output_','')
+    file_name = File.expand_path(file__)
+    "#{file_name.sub('.rb', '')}/#{File.basename(file_name, '.rb')}.#{format_type}.erb"
+  end
+  
+  # Process to render the ERB template on the binding.
+  def render(b)
+    require 'erb'
+    templ = File.open(@templ_file).read
+    t = ERB.new(templ, nil, 2)
+    @obj = self
+    t.result(b)
+  end
+
+  # Trim given string to remove the newlines and white spaces.
+  def c(str)
+    str.chomp.gsub("\n", ' ')
+  end
+  
+
+  
   # Returns a String with successive white spaces are replaced by one
   # space and stripeed.
   def truncate(str)
