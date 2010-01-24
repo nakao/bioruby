@@ -193,18 +193,6 @@ class DB
     send("output_#{format_type.to_s.downcase}")
   end
 
-  # API for the RDF subject URI. 
-  # Methods both prefix and entry_id should be defined at the inherited class
-  def uri
-    "<#{prefix}/#{entry_id}>"
-  end
-
-  # URI prefix
-  @prefix = nil
-  attr_accessor :prefix
-
-
-  
   private
 
   # Discover the appropriate ERB template file of the specified file format.
@@ -223,9 +211,9 @@ class DB
     t.result(b)
   end
 
-  # Trim given string to remove the newlines and white spaces.
+  # Trim given string to remove the newlines and white space, and to escape double quote.
   def c(str)
-    str.chomp.gsub("\n", ' ')
+    str.chomp.gsub("\n", ' ').gsub("\"", '\"')
   end
   
 

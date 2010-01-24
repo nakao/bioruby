@@ -319,9 +319,6 @@ class MEDLINE < NCBIDB
   #   [PmLink] http://www.ncbi.nlm.nih.gov/entrez/utils/pmlink_help.html
 
   
-  # A generic RDF subject URI at the TogoWS REST
-  @prefix = "http://togows.dbcls.jp/entry/ncbi-pubmed"
-
   # Format the output in the RDF/Turtle (.ttl).
   def output_ttl
     @templ_file = template_file(__FILE__)
@@ -330,11 +327,6 @@ class MEDLINE < NCBIDB
 
   # entry_id API
   alias :pmid :entry_id
-
-  # Generate a generic RDF predicate URI at the TogoWS REST.
-  def predicate(field_name)
-    "<http://togows.dbcls.jp/ontology/ncbi-pubmed##{field_name}>"
-  end
     
   private 
 

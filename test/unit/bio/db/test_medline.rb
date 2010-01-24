@@ -33,10 +33,40 @@ module Bio
       assert_equal(["GARTLER, S. M."], Bio::MEDLINE.new("AU  - GARTLER SM").authors)
     end
 
-    def test_output_n3
+    def test_output_ttl
       obj = Bio::MEDLINE.new(AGILE)
-      str = obj.output_n3
-      assert_equal('', str)
+      str = obj.output_ttl
+      assert(str.split("\n")[0] =~ /^</)
+      assert(str.split("\n")[0] =~ /\.$/)
+      assert(str.split("\n")[0].split("\t").size == 3)
+      assert(str.split("\n")[0].split("\t").size == 3)
+puts str
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[0].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#pmid>", str.split("\n")[0].split("\t")[1])
+      assert_equal('"16734914" .', str.split("\n")[0].split("\t")[2])
+
+      pos = 3
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[pos].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#crdt>", str.split("\n")[pos].split("\t")[1])
+#      assert_equal('"2006-06-01T09:00:00"^^<http://www.w3.org/2001/XMLSchema#:datetime> .', str.split("\n")[pos].split("\t")[2])
+      pos = 4
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[pos].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#edat>", str.split("\n")[pos].split("\t")[1])
+#      assert_equal('"2006-06-01T09:00:00"^^<http://www.w3.org/2001/XMLSchema#:datetime> .', str.split("\n")[pos].split("\t")[2])
+      pos = 5
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[pos].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#mhda>", str.split("\n")[pos].split("\t")[1])
+#      assert_equal('"2006-06-01T09:00:00"^^<http://www.w3.org/2001/XMLSchema#:datetime> .', str.split("\n")[pos].split("\t")[2])      
+      pos = 9      
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[pos].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#stat>", str.split("\n")[pos].split("\t")[1])
+      assert_equal('"MEDLINE" .', str.split("\n")[pos].split("\t")[2])      
+      pos = 10      
+      assert_equal("<http://togows.dbcls.jp/entry/ncbi-pubmed/16734914>", str.split("\n")[pos].split("\t")[0])
+      assert_equal("<http://togows.dbcls.jp/ontology/ncbi-pubmed#ti>", str.split("\n")[pos].split("\t")[1])
+      assert_equal('"Agile methods in biomedical software development: a multi-site experience report." .', str.split("\n")[pos].split("\t")[2])      
+      
+
     end
     
     AGILE = <<-EOMED

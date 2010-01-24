@@ -1,47 +1,68 @@
-<%= uri %>	<%= predicate('pmid') %>	"<%=c pubmed['PMID'] %>" .
+<%
+# A generic RDF subject URI at the TogoWS REST
+@prefix = "http://togows.dbcls.jp/entry/ncbi-pubmed"
+
+def uri
+  "<#{@prefix}/#{c(pubmed['PMID'])}>"
+end
+
+# Generate a generic RDF predicate URI at the TogoWS REST.
+def predicate(field_name)
+  "<http://togows.dbcls.jp/ontology/ncbi-pubmed##{field_name}>"
+end
+%><%= uri %>	<%= predicate('pmid') %>	"<%=c pubmed['PMID'] %>" .
+<%= uri %>	http://www.w3.org/2000/01/rdf-schema#label	"pmid:<%=c pubmed['PMID'] %>" .          
+<%= uri %>	<http://purl.org/dc/elements/1.1/identifier>	<http://pubmed.org/<%=c pubmed['PMID'] %>> .
 <%= uri %>	<%= predicate('crdt') %>	"<%=c pubmed['CRDT'] %>" .
 <%= uri %>	<%= predicate('edat') %>	"<%=c pubmed['EDAT'] %>" .
 <%= uri %>	<%= predicate('mhda') %>	"<%=c pubmed['MHDA'] %>" .
 <% pubmed['gr'].chomp.split("\n").each do |gr| %>
 <%= uri %>	<%= predicate('gr') %>	"<%=c gr %>" .
 <% end %>
+<% pubmed['PHST'].chomp.split("\n").each do |phst| %>
+<%= uri %>	<%= predicate('phst') %>	"<%=c phst %>" .
+<% end %>
 <%= uri %>	<%= predicate('stat') %>	"<%=c pubmed['STAT'] %>" .
 <%= uri %>	<%= predicate('ti') %>	"<%=c pubmed['TI'] %>" .
+<%= uri %>	<http://purl.org/dc/elements/1.1/title>	"<%=c pubmed['TI'] %>" .
 <%= uri %>	<%= predicate('ab') %>	"<%=c pubmed['AB'] %>" .
+<%= uri %>	<http://purl.org/dc/terms/abstract>	"<%=c pubmed['AB'] %>" .
+<%= uri %>	<%= predicate('vi') %>	"<%=c pubmed['VI'] %>" .
+<%= uri %>	<http://prismstandard.org/namespaces/1.2/basic/volume>	"<%=c pubmed['VI'] %>" .
 <%= uri %>	<%= predicate('pg') %>	"<%=c pubmed['PG'] %>" .
+<%= uri %>	<http://prismstandard.org/namespaces/1.2/basic/startingPage>	"<%=c pubmed['PG'].split("-").first %>" .
 <%= uri %>	<%= predicate('dp') %>	"<%=c pubmed['DP'] %>" .
-<%= uri %>	<%= predicate('ta') %>	"<%=c pubmed['TA'] %>" .
-<%= uri %>	<%= predicate('sb') %>	"<%=c pubmed['SB'] %>" .
 <%= uri %>	<%= predicate('dep') %>	"<%=c pubmed['DEP'] %>" .
+<%= uri %>	<http://prismstandard.org/namespaces/1.2/basic/publicationDate>	"<%=c pubmed['DEP'] %>" .
+<%= uri %>	<%= predicate('ta') %>	"<%=c pubmed['TA'] %>" .
+<%= uri %>	<http://prismstandard.org/namespaces/1.2/basic/publicationName>	"<%=c pubmed['TA'] %>" .
+<%= uri %>	<%= predicate('jt') %>	"<%=c pubmed['JT'] %>" .
+<%= uri %>	<%= predicate('so') %>	"<%=c pubmed['SO'] %>" .
+<%= uri %>	<%= predicate('sb') %>	"<%=c pubmed['SB'] %>" .
 <%= uri %>	<%= predicate('pt') %>	"<%=c pubmed['PT'] %>" .
 <% pubmed['FAU'].chomp.split("\n").each do |fau| %>
 <%= uri %>	<%= predicate('fau') %>	"<%=c fau %>" .
+<%= uri %>	<http://purl.org/dc/terms/creator>	"<%=c fau %>" .
 <% end %>
 <% pubmed['AU'].chomp.split("\n").each do |au| %>
 <%= uri %>	<%= predicate('au') %>	"<%=c au %>" .
-<% end %>
-<% pubmed['PHST'].chomp.split("\n").each do |phst| %>
-<%= uri %>	<%= predicate('phst') %>	"<%=c phst %>" .
 <% end %>
 <% pubmed['MH'].chomp.split("\n").each do |mh| %>
 <%= uri %>	<%= predicate('mh') %>	"<%=c mh %>" .
 <% end %>
 <%= uri %>	<%= predicate('jid') %>	"<%=c pubmed['JID'] %>" .
 <%= uri %>	<%= predicate('dcom') %>	"<%=c pubmed['DCOM'] %>" .
-<%= uri %>	<%= predicate('so') %>	"<%=c pubmed['SO'] %>" .
 <%= uri %>	<%= predicate('pst') %>	"<%=c pubmed['PST'] %>" .
 <% pubmed['AID'].chomp.split("\n").each do |aid| %>
 <%= uri %>	<%= predicate('aid') %>	"<%=c aid %>" .
+<% end %>
+<% pubmed['OID'].chomp.split("\n").each do |oid| %>
+<%= uri %>	<%= predicate('oid') %>	"<%= oid %>" .
 <% end %>
 <%= uri %>	<%= predicate('pmc') %>	"<%=c pubmed['PMC'] %>" .
 <%= uri %>	<%= predicate('pl') %>	"<%=c pubmed['PL'] %>" .
 <%= uri %>	<%= predicate('lr') %>	"<%=c pubmed['LR'] %>" .
 <%= uri %>	<%= predicate('own') %>	"<%=c pubmed['OWN'] %>" .
 <%= uri %>	<%= predicate('da') %>	"<%=c pubmed['DA'] %>" .
-<%= uri %>	<%= predicate('vi') %>	"<%=c pubmed['VI'] %>" .
-<% pubmed['OID'].chomp.split("\n").each do |oid| %>
-<%= uri %>	<%= predicate('oid') %>	"<%= oid %>" .
-<% end %>
-<%= uri %>	<%= predicate('jt') %>	"<%=c pubmed['JT'] %>" .
 <%= uri %>	<%= predicate('la') %>	"<%=c pubmed['LA'] %>" .
 <%= uri %>	<%= predicate('is') %>	"<%=c pubmed['IS'] %>" .
