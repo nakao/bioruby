@@ -36,43 +36,43 @@ module Bio
 
   module TestPhyloXMLData
 
-  PHYLOXML_TEST_DATA = Pathname.new(File.join(BioRubyTestDataPath, 'phyloxml')).cleanpath.to_s
+    PHYLOXML_TEST_DATA = Pathname.new(File.join(BioRubyTestDataPath, 'phyloxml')).cleanpath.to_s
 
-  def self.example_xml
-    File.join PHYLOXML_TEST_DATA, 'phyloxml_examples.xml'
-    #If you want to test the output of writer, then do this:
-    #File.join PHYLOXML_TEST_DATA, 'phyloxml_examples_test.xml'
-    # But make sure you run ruby test/unit/bio/db/test_phyloxml_writer.rb before
-  end
+    def self.example_xml
+      File.join PHYLOXML_TEST_DATA, 'phyloxml_examples.xml'
+      #If you want to test the output of writer, then do this:
+      #File.join PHYLOXML_TEST_DATA, 'phyloxml_examples_test.xml'
+      # But make sure you run ruby test/unit/bio/db/test_phyloxml_writer.rb before
+    end
 
-  def self.made_up_xml
-    File.join PHYLOXML_TEST_DATA, 'made_up.xml'
-    #If you want to test the output of writer, then do this:
-    #File.join PHYLOXML_TEST_DATA, 'made_up_test.xml'
-    # But make sure you run ruby test/unit/bio/db/test_phyloxml_writer.rb before
-  end
+    def self.made_up_xml
+      File.join PHYLOXML_TEST_DATA, 'made_up.xml'
+      #If you want to test the output of writer, then do this:
+      #File.join PHYLOXML_TEST_DATA, 'made_up_test.xml'
+      # But make sure you run ruby test/unit/bio/db/test_phyloxml_writer.rb before
+    end
 
-  def self.metazoa_xml
-    File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_metazoa.xml'
-  end
+    def self.metazoa_xml
+      File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_metazoa.xml'
+    end
 
-  def self.mollusca_xml
-    File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_mollusca.xml'
-  end
+    def self.mollusca_xml
+      File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_mollusca.xml'
+    end
 
-  def self.life_xml
-    File.join PHYLOXML_TEST_DATA, 'tol_life_on_earth_1.xml'
-  end
+    def self.life_xml
+      File.join PHYLOXML_TEST_DATA, 'tol_life_on_earth_1.xml'
+    end
 
-  def self.dollo_xml
-    File.join PHYLOXML_TEST_DATA, 'o_tol_332_d_dollo.xml'
-  end
+    def self.dollo_xml
+      File.join PHYLOXML_TEST_DATA, 'o_tol_332_d_dollo.xml'
+    end
 
-  def self.mollusca_short_xml
-    File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_mollusca_short.xml'
-  end
+    def self.mollusca_short_xml
+      File.join PHYLOXML_TEST_DATA, 'ncbi_taxonomy_mollusca_short.xml'
+    end
 
-end #end module TestPhyloXMLData
+  end #end module TestPhyloXMLData
 
   
 
@@ -83,10 +83,24 @@ end #end module TestPhyloXMLData
       assert_instance_of(Bio::PhyloXML::Parser,
                          phyloxml = Bio::PhyloXML::Parser.open(filename))
       common_test_next_tree(phyloxml)
+      phyloxml.close
+    end
+
+    def test_open_with_block
+      filename = TestPhyloXMLData.example_xml
+      phyloxml_bak = nil
+      ret = Bio::PhyloXML::Parser.open(filename) do |phyloxml|
+        assert_instance_of(Bio::PhyloXML::Parser, phyloxml)
+        common_test_next_tree(phyloxml)
+        phyloxml_bak = phyloxml
+        "ok"
+      end
+      assert_equal("ok", ret)
+      assert_equal(true, phyloxml_bak.closed?)
     end
 
     def test_new
-      str = File.read(TestPhyloXMLData.example_xml)
+      str = File.open(TestPhyloXMLData.example_xml, "rb") { |f| f.read }
       assert_instance_of(Bio::PhyloXML::Parser,
                          phyloxml = Bio::PhyloXML::Parser.new(str))
       common_test_next_tree(phyloxml)
@@ -192,8 +206,8 @@ end #end module TestPhyloXMLData
 
 
   class TestPhyloXML_close < Test::Unit::TestCase
-    def phyloxml_open
-      Bio::PhyloXML::Parser.open(TestPhyloXMLData.example_xml)
+    def phyloxml_open(&block)
+      Bio::PhyloXML::Parser.open(TestPhyloXMLData.example_xml, &block)
     end
     private :phyloxml_open
 
@@ -201,6 +215,25 @@ end #end module TestPhyloXMLData
       phyloxml = phyloxml_open
       phyloxml.next_tree
       assert_nil(phyloxml.close)
+    end
+
+    def test_closed?
+      phyloxml = phyloxml_open
+      assert_equal(false, phyloxml.closed?)
+      phyloxml.next_tree
+      assert_equal(false, phyloxml.closed?)
+      phyloxml.close
+      assert_equal(true, phyloxml.closed?)
+    end
+
+    def test_closed_with_block
+      ret = phyloxml_open do |phyloxml|
+        assert_equal(false, phyloxml.closed?)
+        phyloxml.next_tree
+        assert_equal(false, phyloxml.closed?)
+        phyloxml
+      end
+      assert_equal(true, ret.closed?)
     end
 
     def test_close_after_close
@@ -213,6 +246,25 @@ end #end module TestPhyloXMLData
       phyloxml = phyloxml_open
       phyloxml.close
       assert_raise(LibXML::XML::Error) { phyloxml.next_tree }
+    end
+
+    def test_next_tree_after_open_with_block
+      phyloxml = phyloxml_open { |arg| arg }
+      assert_raise(LibXML::XML::Error) { phyloxml.next_tree }
+    end
+
+    def test_close_after_open_with_block
+      phyloxml = phyloxml_open { |arg| arg }
+      assert_raise(LibXML::XML::Error) { phyloxml.close }
+    end
+
+    def test_close_in_open_with_block
+      phyloxml = phyloxml_open do |arg|
+        ret = arg
+        assert_nil(arg.close)
+        ret
+      end
+      assert_raise(LibXML::XML::Error) { phyloxml.close }
     end
 
     def test_close_does_not_affect_io

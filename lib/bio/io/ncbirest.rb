@@ -15,13 +15,21 @@ module Bio
 
 class NCBI
 
-  autoload :SOAP,       'bio/io/ncbisoap'
 
   # (Hash) Default parameters for Entrez (eUtils).
   # They may also be used for other NCBI services.
   ENTREZ_DEFAULT_PARAMETERS = {
-    'tool' => "#{$0} (bioruby/#{Bio::BIORUBY_VERSION_ID})",
-    'email' => nil,
+    # Cited from
+    # http://www.ncbi.nlm.nih.gov/books/NBK25499/#chapter4.Release_Notes
+    #  tool:
+    #  Name of application making the E-utility call.
+    #  Value must be a string with no internal spaces.
+    'tool' => "bioruby",
+    # Cited from
+    # http://www.ncbi.nlm.nih.gov/books/NBK25497/
+    # The value of email should be a complete and valid e-mail address
+    # of the software developer and not that of a third-party end user.
+    'email' => 'staff@bioruby.org',
   }
 
   # Resets Entrez (eUtils) default parameters.
@@ -29,8 +37,8 @@ class NCBI
   # *Returns*:: (Hash) default parameters
   def self.reset_entrez_default_parameters
     h = {
-      'tool' => "#{$0} (bioruby/#{Bio::BIORUBY_VERSION_ID})",
-      'email' => nil,
+      'tool'  => "bioruby",
+      'email' => 'staff@bioruby.org',
     }
     ENTREZ_DEFAULT_PARAMETERS.clear
     ENTREZ_DEFAULT_PARAMETERS.update(h)
@@ -45,6 +53,24 @@ class NCBI
 
   # Sets default email address used for Entrez (eUtils).
   # It may also be used for other NCBI services.
+  #
+  # In http://www.ncbi.nlm.nih.gov/books/NBK25497/ 
+  # NCBI says:
+  # "The value of email should be a complete and valid e-mail address of
+  # the software developer and not that of a third-party end user."
+  #
+  # By default, email address of BioRuby staffs is set.
+  #
+  # From the above NCBI documentation, the tool and email value is used
+  # only for unblocking IP addresses blocked by NCBI due to excess requests.
+  # For the purpose, NCBI says:
+  # "Please be aware that merely providing values for tool and email
+  # in requests is not sufficient to comply with this policy;
+  # these values must be registered with NCBI."
+  #
+  # Please use your own email address and tool name when registering
+  # tool and email values to NCBI.
+  #
   # ---
   # *Arguments*:
   # * (required) _str_: (String) email address
@@ -62,6 +88,17 @@ class NCBI
 
   # Sets default tool name for Entrez (eUtils).
   # It may also be used for other NCBI services.
+  #
+  # In http://www.ncbi.nlm.nih.gov/books/NBK25497/ 
+  # NCBI says:
+  # "The value of tool should be a string with no internal spaces that
+  # uniquely identifies the software producing the request."
+  #
+  # "bioruby" is set by default.
+  # Please use your own tool name when registering to NCBI.
+  #
+  # See the document of default_email= for more information.
+  #
   # ---
   # *Arguments*:
   # * (required) _str_: (String) tool name
@@ -127,6 +164,7 @@ class REST
   def ncbi_post_form(serv, opts)
     ncbi_check_parameters(opts)
     ncbi_access_wait
+    #$stderr.puts opts.inspect
     response = Bio::Command.post_form(serv, opts)
     response
   end
@@ -147,7 +185,7 @@ class REST
   def ncbi_check_parameters(opts)
     #return if Time.now < Time.gm(2010,5,31)
     if opts['email'].to_s.empty? then
-      raise 'Set email parameter for the query, or set Bio::NCBI.default_email = "(your email address)"'
+      raise 'Set email parameter for the query, or set Bio::NCBI.default_email = "(email address of the author of this software)"'
     end
     if opts['tool'].to_s.empty? then
       raise 'Set tool parameter for the query, or set Bio::NCBI.default_tool = "(your tool name)"'
@@ -485,7 +523,7 @@ class REST
       #  nucleotide = nuccore + nucest + nucgss
       #
       # format (rettype):
-      # * native       all but Gene    Default format for viewing sequences
+      # * native       all but Gene    ASN Default format for viewing sequences
       # * fasta        all sequence    FASTA view of a sequence
       # * gb           NA sequence     GenBank view for sequences
       # * gbc          NA sequence     INSDSeq structured flat file
@@ -536,6 +574,125 @@ class REST
           format = "gbc"
         end
         opts = { "db" => "sequences", "rettype" => format }
+        opts.update(hash)
+        Bio::NCBI::REST.efetch(ids, opts)
+      end
+
+      # Retrieve nucleotide sequence entries by given IDs using E-Utils
+      # (efetch).
+      #
+      # * http://eutils.ncbi.nlm.nih.gov/entrez/query/static/efetchseq_help.html
+      #  nucleotide = nuccore + nucest + nucgss
+      #
+      # format (rettype):
+      # * native       all but Gene    ASN Default format for viewing sequences
+      # * fasta        all sequence    FASTA view of a sequence
+      # * gb           NA sequence     GenBank view for sequences
+      # * gbc          NA sequence     INSDSeq structured flat file
+      # * gbwithparts  NA sequence     GenBank CON division with sequences
+      # * est          dbEST sequence  EST Report
+      # * gss          dbGSS sequence  GSS Report
+      # * gp           AA sequence     GenPept view
+      # * gpc          AA sequence     INSDSeq structured flat file
+      # * seqid        all sequence    Convert GIs into seqids
+      # * acc          all sequence    Convert GIs into accessions
+      # * chr          dbSNP only      SNP Chromosome Report
+      # * flt          dbSNP only      SNP Flat File report
+      # * rsr          dbSNP only      SNP RS Cluster report
+      # * brief        dbSNP only      SNP ID list
+      # * docset       dbSNP only      SNP RS summary
+      #
+      # == Usage
+      #
+      #  Bio::NCBI::REST::EFetch.nucleotide("123,U12345,U12345.1,gb|U12345|")
+      #
+      #  list = [123, "U12345.1", "gb|U12345|"]
+      #  Bio::NCBI::REST::EFetch.nucleotide(list)
+      #  Bio::NCBI::REST::EFetch.nucleotide(list, "fasta")
+      #  Bio::NCBI::REST::EFetch.nucleotide(list, "acc")
+      #  Bio::NCBI::REST::EFetch.nucleotide(list, "xml")
+      #
+      #  Bio::NCBI::REST::EFetch.nucleotide("AE009950")
+      #  Bio::NCBI::REST::EFetch.nucleotide("AE009950", "gbwithparts")
+      #
+      #  ncbi = Bio::NCBI::REST::EFetch.new
+      #  ncbi.nucleotide("123,U12345,U12345.1,gb|U12345|")
+      #  ncbi.nucleotide(list)
+      #  ncbi.nucleotide(list, "fasta")
+      #  ncbi.nucleotide(list, "acc")
+      #  ncbi.nucleotide(list, "xml")
+      #  ncbi.nucleotide("AE009950")
+      #  ncbi.nucleotide("AE009950", "gbwithparts")
+      #
+      # ---
+      #
+      # *Arguments*:
+      # * _ids_: list of NCBI entry IDs (required)
+      # * _format_: "gb", "gbc", "fasta", "acc", "xml" etc.
+      # *Returns*:: String
+      def nucleotide(ids, format = "gb", hash = {})
+        case format
+        when "xml"
+          format = "gbc"
+        end
+        opts = { "db" => "nucleotide", "rettype" => format }
+        opts.update(hash)
+        Bio::NCBI::REST.efetch(ids, opts)
+      end
+
+      # Retrieve protein sequence entries by given IDs using E-Utils
+      # (efetch).
+      #
+      # * http://eutils.ncbi.nlm.nih.gov/entrez/query/static/efetchseq_help.html
+      #  protein
+      #
+      # format (rettype):
+      # * native       all but Gene    ASN Default format for viewing sequences
+      # * fasta        all sequence    FASTA view of a sequence
+      # * gb           NA sequence     GenBank view for sequences
+      # * gbc          NA sequence     INSDSeq structured flat file
+      # * gbwithparts  NA sequence     GenBank CON division with sequences
+      # * est          dbEST sequence  EST Report
+      # * gss          dbGSS sequence  GSS Report
+      # * gp           AA sequence     GenPept view
+      # * gpc          AA sequence     INSDSeq structured flat file
+      # * seqid        all sequence    Convert GIs into seqids
+      # * acc          all sequence    Convert GIs into accessions
+      # * chr          dbSNP only      SNP Chromosome Report
+      # * flt          dbSNP only      SNP Flat File report
+      # * rsr          dbSNP only      SNP RS Cluster report
+      # * brief        dbSNP only      SNP ID list
+      # * docset       dbSNP only      SNP RS summary
+      #
+      # == Usage
+      #
+      #  Bio::NCBI::REST::EFetch.protein("7527480,AAF63163.1,AAF63163")
+      #
+      #  list = [ 7527480, "AAF63163.1", "AAF63163"]
+      #  Bio::NCBI::REST::EFetch.protein(list)
+      #  Bio::NCBI::REST::EFetch.protein(list, "fasta")
+      #  Bio::NCBI::REST::EFetch.protein(list, "acc")
+      #  Bio::NCBI::REST::EFetch.protein(list, "xml")
+      #
+      #  ncbi = Bio::NCBI::REST::EFetch.new
+      #  ncbi.protein("7527480,AAF63163.1,AAF63163")
+      #  ncbi.protein(list)
+      #  ncbi.protein(list, "fasta")
+      #  ncbi.protein(list, "acc")
+      #  ncbi.protein(list, "xml")
+      #
+      # ---
+      #
+      # *Arguments*:
+      # * _ids_: list of NCBI entry IDs (required)
+      # * _format_: "gp", "gpc", "fasta", "acc", "xml" etc.
+      # *Returns*:: String
+      def protein(ids, format = "gp", hash = {})
+        case format
+        when "xml"
+          format = "gpc"
+        end
+        opts = { "db" => "protein", "rettype" => format }
         opts.update(hash)
         Bio::NCBI::REST.efetch(ids, opts)
       end

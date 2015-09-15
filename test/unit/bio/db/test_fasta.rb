@@ -95,7 +95,7 @@ END
     def test_entry_id
       assert_equal('sce:YBR160W', @obj.entry_id)
     end
-
+    
     def test_acc_version
       assert_equal(nil, @obj.acc_version)
     end
@@ -108,6 +108,10 @@ END
     def test_definition
       data = "sce:YBR160W  CDC28, SRM5; cyclin-dependent protein kinase catalytic subunit [EC:2.7.1.-] [SP:CC28_YEAST]"
       assert_equal(data, @obj.definition)
+    end
+    
+    def test_first_name
+      assert_equal('sce:YBR160W', @obj.first_name)
     end
 
     def test_data
@@ -138,6 +142,40 @@ END
     def test_entry
       data = ">gi|55416189|gb|AAV50056.1| NADH dehydrogenase subunit 1 [Dasyurus hallucatus]\nMFTINLLIYIIPILLAVAFLTLIERKMLGYMQFRKGPNIVGPYGLLQPFADAVKLFTKEPLRPLTSSISIFIIAPILALT\nIALTIWTPLPMPNTLLDLNLGLIFILSLSGLSVYSILWSGWASNSKYALIGALRAVAQTISYEVSLAIILLSIMLINGSF\nTLKTLSITQENLWLIITTWPLAMMWYISTLAETNRAPFDLTEGESELVSGFNVEYAAGPFAMFFLAEYANIIAMNAITTI\nLFLGPSLTPNLSHLNTLSFMLKTLLLTMVFLWVRASYPRFRYDQLMHLLWKNFLPMTLAMCLWFISLPIALSCIPPQL\n"
       assert_equal(data, @obj.entry)
+    end
+
+    def test_entry_overrun
+      data =<<END
+>gi|55416190|gb|AAV50057.1| NADH dehydrogenase subunit 2 [Dasyurus hallucatus]
+MSPYVLMILTLSLFIGTCLTIFSNHWFTAWMGLEINTLAIIPLMTAPNNPRSTEAATKYFLTQATASMLMMFAIIYNAWS
+TNQWALPQLSDDWISLLMTVALAIKLGLAPFHFWVPEVTQGIPLLTGMILLTWQKIAPTAILFQIAPYLNMKFLVILAIL
+STLVGGWGGLNQTHLRKILAYSSIAHMGWMIIIVQINPTLSIFTLTIYVMATLTTFLTLNLSNSTKIKSLGNLWNKSATA
+TIIIFLTLLSLGGLPPLTGFMPKWLILQELINNGNIITATMMALSALLNLFFYMRLIYASSLTMFPSINNSKMQWYNNSM
+KTTTLIPTATVISSLLLPLTPLFVTLY
+END
+      assert_equal(data, @obj.entry_overrun)
+    end
+
+    class DummyFactory
+      def query(str)
+        @query_str = str
+        "DummyFactoryResult#{str.length}"
+      end
+      attr_reader :query_str
+    end #class DummyFactory
+
+    def test_query
+      data =<<END
+>gi|55416189|gb|AAV50056.1| NADH dehydrogenase subunit 1 [Dasyurus hallucatus]
+MFTINLLIYIIPILLAVAFLTLIERKMLGYMQFRKGPNIVGPYGLLQPFADAVKLFTKEPLRPLTSSISIFIIAPILALT
+IALTIWTPLPMPNTLLDLNLGLIFILSLSGLSVYSILWSGWASNSKYALIGALRAVAQTISYEVSLAIILLSIMLINGSF
+TLKTLSITQENLWLIITTWPLAMMWYISTLAETNRAPFDLTEGESELVSGFNVEYAAGPFAMFFLAEYANIIAMNAITTI
+LFLGPSLTPNLSHLNTLSFMLKTLLLTMVFLWVRASYPRFRYDQLMHLLWKNFLPMTLAMCLWFISLPIALSCIPPQL
+END
+
+      factory = DummyFactory.new
+      assert_equal("DummyFactoryResult401", @obj.query(factory))
+      assert_equal(data, factory.query_str)
     end
 
     def test_entry_id
@@ -191,19 +229,43 @@ END
     def test_acc_version
       assert_equal('AAV50056.1', @obj.acc_version)
     end
+    
+    def test_first_name
+      assert_equal('gi|55416189|gb|AAV50056.1|', @obj.first_name)
+    end
 
   end # class TestFastaFormat
 
 
-
-
-  class TestFastaDefinition < Test::Unit::TestCase
-
-    def setup
+  class TestFastaFirstName < Test::Unit::TestCase
+    def test_first_name1
+      data = ">abc def\nATGC"
+      assert_equal 'abc', Bio::FastaFormat.new(data).first_name
     end
-
-    def test_defline
+    
+    def test_first_name_multi_identifier
+      data = ">gi|398365175|ref|NP_009718.3| Cdc28p [Saccharomyces cerevisiae S288c] #=> 'gi|398365175|ref|NP_009718.3|\nATGCTG"
+      assert_equal 'gi|398365175|ref|NP_009718.3|', Bio::FastaFormat.new(data).first_name
     end
-  end # class TestFastaDefinition
-
+    
+    def test_first_name_single_worded_defintion
+      data = ">abc\nATGC"
+      assert_equal 'abc', Bio::FastaFormat.new(data).first_name
+    end
+    
+    def test_no_definition
+      data = ">\nATGC"
+      assert_equal '', Bio::FastaFormat.new(data).first_name
+    end
+    
+    def test_tabbed_defintion
+      data = ">gabc\tdef\nATGC"
+      assert_equal 'gabc', Bio::FastaFormat.new(data).first_name
+    end
+    
+    def test_space_before_first_name
+      data = "> gabcds\tdef\nATGC"
+      assert_equal 'gabcds', Bio::FastaFormat.new(data).first_name
+    end
+  end
 end

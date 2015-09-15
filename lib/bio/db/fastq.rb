@@ -407,6 +407,20 @@ class Fastq
   # raw sequence data as a String object
   attr_reader :sequence_string
 
+  # Returns Fastq formatted string constructed from instance variables.
+  # The string will always be consisted of four lines without wrapping of
+  # the sequence and quality string, and the third-line is always only
+  # contains "+". This may be different from initial entry.
+  #
+  # Note that use of the method may be inefficient and may lose performance
+  # because new string object is created every time it is called.
+  # For showing an entry as-is, consider using Bio::FlatFile#entry_raw.
+  # For output with various options, use Bio::Sequence#output(:fastq).
+  #
+  def to_s
+    "@#{@definition}\n#{@sequence_string}\n+\n#{@quality_string}\n"
+  end
+
   # returns Bio::Sequence::NA
   def naseq
     unless defined? @naseq then
@@ -481,7 +495,7 @@ class Fastq
   # ---
   # *Returns*:: (String or nil) format name
   def format
-    @format ? @format.name : nil
+    ((defined? @format) && @format) ? @format.name : nil
   end
 
 
@@ -638,6 +652,21 @@ class Fastq
   # 
   def to_biosequence
     Bio::Sequence.adapter(self, Bio::Sequence::Adapter::Fastq)
+  end
+
+  # Masks low quality sequence regions.
+  # For each sequence position, if the quality score is smaller than
+  # the threshold, the sequence in the position is replaced with
+  # <em>mask_char</em>.
+  #
+  # Note: This method does not care quality_score_type.
+  # ---
+  # *Arguments*:
+  # * (required) <em>threshold</em> : (Numeric) threshold
+  # * (optional) <em>mask_char</em> : (String) character used for masking
+  # *Returns*:: Bio::Sequence object
+  def mask(threshold, mask_char = 'n')
+    to_biosequence.mask_with_quality_score(threshold, mask_char)
   end
 
 end #class Fastq

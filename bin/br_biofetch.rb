@@ -6,14 +6,35 @@
 #               Toshiaki Katayama <k@bioruby.org>
 # License::     The Ruby License
 #
-# $Id: br_biofetch.rb,v 1.4 2007/04/05 23:35:39 trevor Exp $
 #
+
+begin
+  require 'rubygems'
+rescue LoadError
+end
 
 require 'bio/io/fetch'
 
+def require_bio_old_biofetch_emulator(mandatory = true)
+  begin
+    require 'bio-old-biofetch-emulator'
+  rescue LoadError
+    if mandatory then
+      $stderr.puts "Error: please install bio-old-biofetch-emulator gem."
+      exit 1
+    end
+  end
+end
+
+def default_url
+  'http://bioruby.org/cgi-bin/biofetch.rb'
+end
+
+def another_url
+  'http://www.ebi.ac.uk/cgi-bin/dbfetch'
+end
+
 def usage
-  default_url = 'http://bioruby.org/cgi-bin/biofetch.rb'
-  another_url = 'http://www.ebi.ac.uk/cgi-bin/dbfetch'
   puts "#{$0} [-s[erver] #{another_url}] db id [style] [format]"
   puts "  server : URL of the BioFetch CGI (default is #{default_url})"
   puts "      db : database name (embl, genbank, etc.)"
@@ -29,18 +50,21 @@ end
 
 case ARGV[0]
 when /^--?s/				# User specified server
+  require_bio_old_biofetch_emulator(false)
   ARGV.shift
   serv = Bio::Fetch.new(ARGV.shift)
   puts serv.fetch(*ARGV)
 when /^--?e/				# EBI server
   ARGV.shift
-  serv = Bio::Fetch.new('http://www.ebi.ac.uk/cgi-bin/dbfetch')
+  serv = Bio::Fetch.new(another_url)
   puts serv.fetch(*ARGV)
 when /^--?r/				# BioRuby server
+  require_bio_old_biofetch_emulator
   ARGV.shift
-  serv = Bio::Fetch.new('http://bioruby.org/cgi-bin/biofetch.rb')
+  serv = Bio::Fetch.new(default_url)
   puts serv.fetch(*ARGV)
 else					# Default server
+  require_bio_old_biofetch_emulator
   puts Bio::Fetch.query(*ARGV)
 end
 

@@ -5,7 +5,6 @@
 #               Toshiaki Katayama <k@bioruby.org>
 # License::     The Ruby License
 #
-# $Id:$
 #
 
 module Bio::Shell
@@ -31,7 +30,7 @@ module Bio::Shell
     seq = ""
     if arg.kind_of?(Bio::Sequence)
       seq = arg
-    elsif arg.respond_to?(:gets) or File.exists?(arg)
+    elsif arg.respond_to?(:gets) or File.exist?(arg)
       ent = flatauto(arg)
     elsif arg[/:/]
       ent = getobj(arg)
@@ -62,10 +61,10 @@ module Bio::Shell
   #   * "db:entry"  -- local BioFlat, OBDA, EMBOSS, KEGG API
   def getent(arg)
     entry = ""
-    db, entry_id = arg.to_s.strip.split(/:/)
+    db, entry_id = arg.to_s.strip.split(/\:/, 2)
 
     # local file
-    if arg.respond_to?(:gets) or File.exists?(arg)
+    if arg.respond_to?(:gets) or File.exist?(arg)
       puts "Retrieving entry from file (#{arg})"
       entry = flatfile(arg)
 
@@ -81,8 +80,12 @@ module Bio::Shell
 
     else
       # EMBOSS USA in ~/.embossrc
-      str = entret(arg)
-      if $?.exitstatus == 0 and str.length != 0
+      begin
+        str = entret(arg)
+      rescue SystemCallError
+        str = ''
+      end
+      if $? and $?.exitstatus == 0 and str.length != 0
         puts "Retrieving entry from EMBOSS (#{arg})"
         entry = str
 

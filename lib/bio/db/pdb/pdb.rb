@@ -6,7 +6,7 @@
 #             Alex Gutteridge <alexg@ebi.ac.uk>
 # License::   The Ruby License
 #
-#  $Id: pdb.rb,v 1.28 2008/04/01 10:36:44 ngoto Exp $
+#  $Id:$
 #
 # = About Bio::PDB
 #
@@ -22,10 +22,11 @@
 # This is beta version. Specs shall be changed frequently.
 #
 
-require 'bio/db/pdb'
 require 'bio/data/aa'
 
 module Bio
+
+  require 'bio/db/pdb' unless const_defined?(:PDB)
 
   # This is the main PDB class which takes care of parsing, annotations
   # and is the entry way to the co-ordinate data held in models.
@@ -339,18 +340,18 @@ module Bio
       #
       def do_parse
         return self if @parsed or !@str
-        str = @str
+        str0 = @str
         each_symbol do |key, klass, ranges|
           #If we only have one range then pull that out
           #and store it in the hash
           if ranges.size <= 1 then
-            self[key] = klass.new(str[ranges.first])
+            self[key] = klass.new(str0[ranges.first])
           else
             #Go through each range and add the string to an array
             #set the hash key to point to that array
             ary = []
             ranges.each do |r|
-              ary << klass.new(str[r]) unless str[r].to_s.strip.empty?
+              ary << klass.new(str0[r]) unless str0[r].to_s.strip.empty?
             end
             self[key] = ary
           end
@@ -362,10 +363,10 @@ module Bio
             each_symbol do |key, klass, ranges|
               #If there's one range then grab that range
               if ranges.size <= 1 then
-                r = ranges.first
-                unless str[r].to_s.strip.empty?
+                r1 = ranges.first
+                unless str[r1].to_s.strip.empty?
                   #and concatenate the new data onto the old
-                  v = klass.new(str[r])
+                  v = klass.new(str[r1])
                   self[key].concat(v) if self[key] != v
                 end
               else
@@ -607,8 +608,8 @@ module Bio
 
       # SEQRES record class
       SEQRES =
-        def_rec(#[  9, 10, Pdb_Integer,      :serNum ],
-                [  9, 10, Pdb_Continuation, nil      ],
+        def_rec(#[  8, 10, Pdb_Integer,      :serNum ],
+                [  8, 10, Pdb_Continuation, nil      ], # PDB v3.2 (2008)
                 [ 12, 12, Pdb_Character,    :chainID ],
                 [ 14, 17, Pdb_Integer,      :numRes  ],
                 [ 20, 22, Pdb_Residue_name, :resName ],
@@ -1820,14 +1821,14 @@ module Bio
                  nil
                end || 'X')
             end
-            seq = Bio::Sequence::AA.new(a.to_s)
+            seq = Bio::Sequence::AA.new(a.join(''))
           else
             # nucleic acid sequence
             a.collect! do |na|
               na = na.delete('^a-zA-Z')
               na.size == 1 ? na : 'n'
             end
-            seq = Bio::Sequence::NA.new(a.to_s)
+            seq = Bio::Sequence::NA.new(a.join(''))
           end
           newHash[k] = seq
         end

@@ -5,7 +5,6 @@
 #               Diana Jaunzeikare <latvianlinuxgirl@gmail.com>
 # License::     The Ruby License
 #
-# $Id:$
 #
 # == Description
 #
@@ -205,7 +204,7 @@ module Bio
         end
       end
       return root
-     end
+      end
 
       private
 

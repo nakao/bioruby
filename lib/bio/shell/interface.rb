@@ -5,7 +5,6 @@
 #               Toshiaki Katayama <k@bioruby.org>
 # License::     The Ruby License
 #
-# $Id: interface.rb,v 1.19 2007/11/15 07:08:49 k Exp $
 #
 
 module Bio::Shell
@@ -101,7 +100,7 @@ module Bio::Shell
         STDOUT.reopen(pg)
         objs.each do |obj|
           if obj.is_a?(String)
-            if File.exists?(obj)
+            if File.exist?(obj)
               system("#{cmd} #{obj}")
             else
               obj.display
@@ -128,7 +127,7 @@ module Bio::Shell
 
   def head(arg, num = 10)
     str = ""
-    if File.exists?(arg)
+    if File.exist?(arg)
       File.open(arg) do |file|
         num.times do
           if line = file.gets
@@ -154,7 +153,7 @@ module Bio::Shell
     if ! file[/^#{datadir}/] and Bio::Shell.ask_yes_or_no(message)
       file = File.join(datadir, file)
     end
-    if File.exists?(file)
+    if File.exist?(file)
       message = "Overwrite existing '#{file}' file? [y/n] "
       if ! Bio::Shell.ask_yes_or_no(message)
         puts " ... save aborted."

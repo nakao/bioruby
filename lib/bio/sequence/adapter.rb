@@ -5,10 +5,10 @@
 #               Naohisa Goto <ng@bioruby.org>,
 # License::     The Ruby License
 #
-# $Id:$
-#
 
-require 'bio/sequence'
+module Bio
+
+require 'bio/sequence' unless const_defined?(:Sequence)
 
 # Internal use only. Normal users should not use this module.
 #
@@ -17,11 +17,12 @@ require 'bio/sequence'
 #
 # This module is used by using "extend", not "include".
 # 
-module Bio::Sequence::Adapter
+module Sequence::Adapter
 
   autoload :GenBank,     'bio/db/genbank/genbank_to_biosequence'
   autoload :EMBL,        'bio/db/embl/embl_to_biosequence'
   autoload :FastaFormat, 'bio/db/fasta/fasta_to_biosequence'
+  autoload :FastaNumericFormat, 'bio/db/fasta/qual_to_biosequence'
   autoload :BioSQL,      'bio/db/biosql/biosql_to_biosequence'
   autoload :SangerChromatogram,
            'bio/db/sanger_chromatogram/chromatogram_to_biosequence'
@@ -106,6 +107,6 @@ __END_OF_DEF__
     true
   end
 
-end #module Bio::Sequence::Adapter
+end #module Sequence::Adapter
 
-
+end #module Bio

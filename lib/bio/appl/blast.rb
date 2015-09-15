@@ -7,7 +7,6 @@
 # Copyright::  Copyright (C) 2008       Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-# $Id:$
 #
 
 require 'bio/command'
@@ -30,7 +29,7 @@ module Bio
   #   
   #   # To run an actual BLAST analysis:
   #   #   1. create a BLAST factory
-  #   remote_blast_factory = Bio::Blast.remote('blastp', 'SWISS',
+  #   remote_blast_factory = Bio::Blast.remote('blastp', 'swissprot',
   #                                            '-e 0.0001', 'genomenet')
   #   #or:
   #   local_blast_factory = Bio::Blast.local('blastn','/path/to/db')
@@ -399,7 +398,7 @@ module Bio
       if fmt = ncbiopt.get('-m') then
         @format = fmt.to_i
       else
-        dummy = Bio::Blast::Report #dummy to load XMLParser or REXML
+        _ = Bio::Blast::Report #dummy to load XMLParser or REXML
         if defined?(XMLParser) or defined?(REXML)
           @format ||= 7
         else

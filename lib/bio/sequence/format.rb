@@ -8,12 +8,6 @@
 #               Jan Aerts <jan.aerts@bbsrc.ac.uk>
 # License::     The Ruby License
 #
-# = TODO
-#
-# porting from N. Goto's feature-output.rb on BioRuby list.
-#
-# $Id: format.rb,v 1.4.2.8 2008/06/17 15:50:05 ngoto Exp $
-#
 
 require 'erb'
 
@@ -181,6 +175,20 @@ module Format
     a.flatten!
     a.collect! { |x| x.to_s.downcase.intern }
     a
+  end
+
+  # The same as output(:fasta, :header=>definition, :width=>width)
+  # This method is intended to replace Bio::Sequence#to_fasta.
+  #
+  #   s = Bio::Sequence.new('atgc')
+  #   puts s.output_fasta                   #=> "> \natgc\n"
+  # ---
+  # *Arguments*: 
+  # * (optional) _definition_: (String) definition line
+  # * (optional) _width_: (Integer) width (default 70)
+  # *Returns*:: String object
+  def output_fasta(definition = nil, width = 70)
+    output(:fasta, :header=> definition, :width => width)
   end
 
   private

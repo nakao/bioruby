@@ -5,7 +5,6 @@
 #               Toshiaki Katayama <k@bioruby.org>
 # License::     The Ruby License
 #
-# $Id: setup.rb,v 1.8 2007/06/28 11:21:40 k Exp $
 #
 
 require 'getoptlong'
@@ -25,7 +24,7 @@ class Bio::Shell::Setup
     Bio::Shell.configure(savedir)
 
     # set default to irb mode
-    Bio::Shell.cache[:mode] = @mode || :irb
+    Bio::Shell.cache[:mode] = ((defined? @mode) && @mode) || :irb
 
     case Bio::Shell.cache[:mode]
     when :web

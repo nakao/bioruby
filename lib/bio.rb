@@ -73,23 +73,26 @@ module Bio
   autoload :KEGGDB,         'bio/db'
   autoload :EMBLDB,         'bio/db'
 
-  ## GenBank/RefSeq/DDBJ
+  ## GenBank, GenPept
 
   autoload :GenBank,        'bio/db/genbank/genbank'
   autoload :GenPept,        'bio/db/genbank/genpept'
+
+  ## (deprecated) Bio::RefSeq, Bio::DDBJ
   autoload :RefSeq,         'bio/db/genbank/refseq'
   autoload :DDBJ,           'bio/db/genbank/ddbj'
-  ## below are described in bio/db/genbank/ddbj.rb
-  #class DDBJ
-  #  autoload :XML,          'bio/io/ddbjxml'
-  #end
 
-  ## EMBL/TrEMBL/Swiss-Prot/SPTR
+  ## EMBL, UniProtKB
 
   autoload :EMBL,           'bio/db/embl/embl'
+  autoload :UniProtKB,      'bio/db/embl/uniprotkb'
+
+  ## aliases of Bio::UniProtKB
   autoload :SPTR,           'bio/db/embl/sptr'
-  autoload :TrEMBL,         'bio/db/embl/trembl'
   autoload :UniProt,        'bio/db/embl/uniprot'
+
+  ## (deprecated) Bio::TrEMBL, Bio::SwissProt
+  autoload :TrEMBL,         'bio/db/embl/trembl'
   autoload :SwissProt,      'bio/db/embl/swissprot'
 
   ## KEGG
@@ -107,7 +110,8 @@ module Bio
     autoload :EXPRESSION,   'bio/db/kegg/expression'
     autoload :ORTHOLOGY,    'bio/db/kegg/orthology'
     autoload :KGML,         'bio/db/kegg/kgml'
-    autoload :Taxonomy,     'bio/db/kegg/taxonomy'
+    autoload :PATHWAY,      'bio/db/kegg/pathway'
+    autoload :MODULE,       'bio/db/kegg/module'
   end
 
   ## other formats
@@ -152,7 +156,6 @@ module Bio
   autoload :Registry,       'bio/io/registry'
   autoload :Fetch,          'bio/io/fetch'
   autoload :SQL,            'bio/io/sql'
-  autoload :SOAPWSDL,       'bio/io/soapwsdl'
   autoload :FlatFile,       'bio/io/flatfile'
   autoload :FlatFileIndex,  'bio/io/flatfile/index' # chage to FlatFile::Index ?
   ## below are described in bio/io/flatfile/index.rb
@@ -165,9 +168,7 @@ module Bio
 
   autoload :PubMed,         'bio/io/pubmed'
   autoload :DAS,            'bio/io/das'
-  autoload :DBGET,          'bio/io/dbget'
 
-  autoload :Ensembl,        'bio/io/ensembl'
   autoload :Hinv,           'bio/io/hinv'
 
   ## below are described in bio/appl/blast.rb
@@ -175,27 +176,9 @@ module Bio
   #  autoload :Fastacmd,     'bio/io/fastacmd'
   #end
 
-  class KEGG
-    autoload :API,          'bio/io/keggapi'
-  end
-
-  ## below are described in bio/db/genbank/ddbj.rb
-  #class DDBJ
-  #  autoload :XML,          'bio/io/ddbjxml'
-  #end
-
-  class HGC
-    autoload :HiGet,        'bio/io/higet'
-  end
-
-  class EBI
-    autoload :SOAP,         'bio/io/ebisoap'
-  end
-
   autoload :NCBI,         'bio/io/ncbirest'
   ## below are described in bio/io/ncbirest.rb
   #class NCBI
-  #  autoload :SOAP,       'bio/io/ncbisoap'
   #  autoload :REST,       'bio/io/ncbirest'
   #end
 
@@ -300,19 +283,6 @@ module Bio
 
   ### Service libraries
   autoload :Command,        'bio/command'
-
-  ### Provide BioRuby shell 'command' also as 'Bio.command' (like ChemRuby)
-
-  def self.method_missing(*args)
-    require 'bio/shell'
-    extend Bio::Shell
-    public_class_method(*Bio::Shell.private_instance_methods)
-    if Bio.respond_to?(args.first)
-      Bio.send(*args)
-    else
-      raise NameError
-    end
-  end
 
 end
 

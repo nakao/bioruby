@@ -21,6 +21,11 @@ require 'bio/command'
 
 module Bio
   class TestCommand < Test::Unit::TestCase
+
+    def windows_platform?
+      Bio::Command.module_eval { windows_platform? }
+    end
+    private :windows_platform?
     
     def test_command_constants
       assert(Bio::Command::UNSAFE_CHARS_UNIX)
@@ -51,8 +56,8 @@ module Bio
       assert_equal("bio_ruby.123@456:789",
                    Bio::Command.escape_shell(str))
       str = "bio\'\"r u\"b\\y123@456:789"
-      case RUBY_PLATFORM
-      when /mswin32|bccwin32/
+      if windows_platform?
+        # mswin32, bccwin32, mingw32, etc.
         assert_equal("\"bio'\"\"r u\"\"b\\y123@456:789\"",
                      Bio::Command.escape_shell(str))
       else
@@ -64,8 +69,8 @@ module Bio
     def test_make_command_line
       ary = [ "ruby", 
         "test.rb", "atgcatgc", "bio\'\"r u\"b\\y123@456:789" ]
-      case RUBY_PLATFORM
-      when /mswin32|bccwin32/
+      if windows_platform?
+        # mswin32, bccwin32, mingw32, etc.
         assert_equal("ruby" + 
                        " test.rb atgcatgc" + 
                        " \"bio'\"\"r u\"\"b\\y123@456:789\"",
@@ -339,11 +344,12 @@ module Bio
     end
 
     def test_make_cgi_params_by_string
-      string = "type1=bp&type2=bp&downstream=&upstream=&format=fasta&options=similarity&options=gene&action=export&_format=Text&output=txt&submit=Continue%20%3E%3E"
-      # In this case, only URI escaping is performed.
+      ##Before BioRuby 1.4.3.0001, only URI escaping was performed.
+      #string = "type1=bp&type2=bp&downstream=&upstream=&format=fasta&options=similarity&options=gene&action=export&_format=Text&output=txt&submit=Continue%20%3E%3E"
       query = " type1=bp&type2=bp&downstream=&upstream=&format=fasta&options=similarity&options=gene&action=export&_format=Text&output=txt&submit=Continue >> "
-      result = Bio::Command.make_cgi_params(query)
-      assert_equal(string, result)
+      assert_raise(TypeError) {
+        Bio::Command.make_cgi_params(query)
+      }
     end
 
   end

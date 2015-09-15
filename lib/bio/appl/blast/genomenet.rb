@@ -7,14 +7,12 @@
 # Copyright::  Copyright (C) 2008       Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-# $Id:$
 #
 
 require 'net/http'
 require 'uri'
 require 'bio/command'
 require 'shellwords'
-require 'bio/appl/blast/remote'
 
 module Bio::Blast::Remote
 
@@ -58,6 +56,11 @@ module Bio::Blast::Remote
   #   tblastn  | AA    | genes-nt, genome, vgenes.nuc
   #  ----------+-------+---------------------------------------------------
   #
+  # === BLAST options
+  #
+  # Options are basically the same as those of the blastall command
+  # in NCBI BLAST. See http://www.genome.jp/tools-bin/show_man?blast2
+  #
   # == See also
   #
   # * Bio::Blast
@@ -69,11 +72,11 @@ module Bio::Blast::Remote
   # 
   # * http://www.ncbi.nlm.nih.gov/blast/
   # * http://www.ncbi.nlm.nih.gov/Education/BLASTinfo/similarity.html
-  # * http://blast.genome.jp/ideas/ideas.html#blast
+  # * http://www.genome.jp/tools/blast/
   #
   module GenomeNet
 
-    Host = "blast.genome.jp".freeze
+    Host = "www.genome.jp".freeze
 
     # Creates a remote BLAST factory using GenomeNet.
     # Returns Bio::Blast object.
@@ -100,7 +103,7 @@ module Bio::Blast::Remote
         key = nil
         host = Bio::Blast::Remote::Genomenet::Host
         http = Bio::Command.new_http(host)
-        result = http.get('/')
+        result = http.get('/tools/blast/')
         #p result.body
         result.body.each_line do |line|
           case line
@@ -158,7 +161,8 @@ module Bio::Blast::Remote
       host = Host
       #host = "blast.genome.jp"
       #path = "/sit-bin/nph-blast"
-      path = "/sit-bin/blast" #2005.08.12
+      #path = "/sit-bin/blast" #2005.08.12
+      path = "/tools-bin/blast" #2012.01.12
 
       options = make_command_line_options
       opt = Bio::Blast::NCBIOptions.new(options)
@@ -166,11 +170,20 @@ module Bio::Blast::Remote
       program = opt.delete('-p')
       db = opt.delete('-d')
 
+      # When database name starts with mine-aa or mine-nt,
+      # space-separated list of KEGG organism codes can be given.
+      # For example, "mine-aa eco bsu hsa".
+      if /\A(mine-(aa|nt))\s+/ =~ db.to_s then
+        db = $1
+        myspecies = {}
+        myspecies["myspecies-#{$2}"] = $'
+      end
+
       matrix = opt.delete('-M') || 'blosum62'
       filter = opt.delete('-F') || 'T'
 
-      opt_V = opt.delete('-V') || 500 # default value for GenomeNet
-      opt_B = opt.delete('-B') || 250 # default value for GenomeNet
+      opt_v = opt.delete('-v') || 500 # default value for GenomeNet
+      opt_b = opt.delete('-b') || 250 # default value for GenomeNet
 
       # format, not for form parameters, but included in option string
       opt_m = opt.get('-m') || '7' # default of BioRuby GenomeNet factory
@@ -186,10 +199,12 @@ module Bio::Blast::Remote
         'other_param'    => optstr,
         'matrix'         => matrix,
         'filter'         => filter,
-        'V_value'        => opt_V, 
-        'B_value'        => opt_B, 
+        'V_value'        => opt_v, 
+        'B_value'        => opt_b, 
         'alignment_view' => 0,
       }
+
+      form.merge!(myspecies) if myspecies
 
       form.keys.each do |k|
         form.delete(k) unless form[k]
@@ -210,9 +225,9 @@ module Bio::Blast::Remote
           @output = result.body
           # waiting for BLAST finished
           while /Your job ID is/ =~ @output and
-              /Your result will be displayed here\<br\>/ =~ @output
-            if /This page will be reloaded automatically in\s*((\d+)\s*min\.)?\s*(\d+)\s*sec\./ =~ @output then
-              reloadtime = $2.to_i * 60 + $3.to_i
+              /Your result will be displayed here\.?\<br\>/i =~ @output
+            if /This page will be reloaded automatically in\s*((\d+)\s*min\.)?\s*((\d+)\s*sec\.)?/ =~ @output then
+              reloadtime = $2.to_i * 60 + $4.to_i
               reloadtime = 300 if reloadtime > 300
               reloadtime = 1 if reloadtime < 1
             else
@@ -227,15 +242,23 @@ module Bio::Blast::Remote
           end
         end
 
-        # workaround 2005.08.12
-        if /\<A +HREF=\"(http\:\/\/blast\.genome\.jp(\/tmp\/[^\"]+))\"\>Show all result\<\/A\>/i =~ @output.to_s then
-          result = http.get($2)
-          @output = result.body
-          txt = @output.to_s.split(/\<pre\>/)[1]
-          raise 'cannot understand response' unless txt
-          txt.sub!(/\<\/pre\>.*\z/m, '')
-          txt.sub!(/.*^ \-{20,}\s*/m, '')
-          @output = txt.gsub(/\&lt\;/, '<')
+        # workaround 2005.08.12 + 2011.01.27 + 2011.7.22
+        if /\<A +HREF=\"(http\:\/\/[\-\.a-z0-9]+\.genome\.jp)?(\/tmp\/[^\"]+)\"\>Show all result\<\/A\>/i =~ @output.to_s then
+          all_prefix = $1
+          all_path = $2
+          all_prefix = "http://#{Host}" if all_prefix.to_s.empty?
+          all_uri = all_prefix + all_path
+          @output = Bio::Command.read_uri(all_uri)
+          case all_path
+          when /\.txt\z/
+            ; # don't touch the data
+          else
+            txt = @output.to_s.split(/\<pre\>/)[1]
+            raise 'cannot understand response' unless txt
+            txt.sub!(/\<\/pre\>.*\z/m, '')
+            txt.sub!(/.*^ \-{20,}\s*/m, '')
+            @output = txt
+          end
         else
           raise 'cannot understand response'
         end
@@ -244,10 +267,14 @@ module Bio::Blast::Remote
       # for -m 0 (NCBI BLAST default) output, html tags are removed.
       if opt_m.to_i == 0 then
         #@output_bak = @output
-        txt = @output.gsub(/^\s*\<img +src\=\"\/Fig\/arrow\_top\.gif\"\>.+$\r?\n/, '')
+        txt = @output.sub!(/^\<select .*/, '')
+        #txt.gsub!(/^\s*\<img +src\=\"\/Fig\/arrow\_top\.gif\"\>.+$\r?\n/, '')
         txt.gsub!(/^.+\<\/form\>$/, '')
-        txt.gsub!(/^\<form *method\=\"POST\" name\=\"clust\_check\"\>.+$\r?\n/, '')
+        #txt.gsub!(/^\<form *method\=\"POST\" name\=\"clust\_check\"\>.+$\r?\n/, '')
+        txt.gsub!(/\<a href\=\"\/tmp[^\"]\>\&uarr\;\&nbsp\;Top\<\/a\>/, '')
         txt.gsub!(/\<[^\>\<]+\>/m, '')
+        txt.gsub!(/\&gt\;/, '>')
+        txt.gsub!(/\&lt\;/, '<')
         @output = txt
       end
 

@@ -6,7 +6,6 @@
 #              2005 Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-#  $Id:$
 #
 
 # loading helper routine for testing bioruby
@@ -178,7 +177,7 @@ module Bio
         'a' => [ 'a' ],
         'c' => [ 'c' ],
         'g' => [ 'g' ],
-        't' => [ 't' ],
+#        't' => [ 't' ],
         't' => [ 't', 'u' ],
         'm' => [ 'a', 'c' ],
         'r' => [ 'a', 'g' ],

@@ -6,16 +6,16 @@
 #              Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-# $Id: residue.rb,v 1.14 2007/12/18 13:48:42 ngoto Exp $
 #
 # = Bio::PDB::Residue
 #
 # = Bio::PDB::Heterogen
 #
 
-require 'bio/db/pdb'
 
 module Bio
+
+  require 'bio/db/pdb' unless const_defined?(:PDB)
 
   class PDB
 
@@ -67,7 +67,7 @@ module Bio
 
       #Keyed access to atoms based on atom name e.g. ["CA"]
       def [](key)
-        atom = @atoms.find{ |atom| key == atom.name }
+        @atoms.find{ |atom| key == atom.name }
       end
 
       # Updates residue id. This is a private method.

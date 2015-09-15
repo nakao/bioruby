@@ -6,10 +6,6 @@
 #              Naohisa Goto <ng@bioruby.org>
 # License::    The Ruby License
 #
-# $Id: format_embl.rb,v 1.1.2.7 2008/06/19 12:45:15 ngoto Exp $
-#
-
-require 'bio/sequence/format'
 
 module Bio::Sequence::Format::NucFormatter
 
@@ -130,9 +126,9 @@ module Bio::Sequence::Format::NucFormatter
     def mol_type_embl
       if mt = molecule_type then
         mt
-      elsif f = (features or []).find { |f| f.feature == 'source' } and
-          q = f.qualifiers.find { |q| q.qualifier == 'mol_type' } then
-        q.value
+      elsif fe = (features or []).find { |f| f.feature == 'source' } and
+          qu = fe.qualifiers.find { |q| q.qualifier == 'mol_type' } then
+        qu.value
       else
         'NA'
       end

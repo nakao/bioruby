@@ -5,12 +5,10 @@
 # Copyright:: Copyright (c) 2005-2007 Midwinter Laboratories, LLC (http://midwinterlabs.com)
 # License::   The Ruby License
 #
-#  $Id:$
-#
 
 module Bio
 
-  autoload :REBASE, 'bio/db/rebase'
+  autoload :REBASE, 'bio/db/rebase' unless const_defined?(:REBASE)
 
 # = Description
 # 
@@ -124,6 +122,9 @@ class RestrictionEnzyme
   autoload :DoubleStranded,          'bio/util/restriction_enzyme/double_stranded'
   autoload :Analysis,                'bio/util/restriction_enzyme/analysis'
   autoload :Range,                   'bio/util/restriction_enzyme/range/sequence_range'
+
+  autoload :SortedNumArray,          'bio/util/restriction_enzyme/sorted_num_array'
+  autoload :DenseIntArray,          'bio/util/restriction_enzyme/dense_int_array'
 
   include CutSymbol
   extend CutSymbol

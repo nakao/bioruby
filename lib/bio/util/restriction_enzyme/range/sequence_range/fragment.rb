@@ -5,12 +5,11 @@
 # Copyright:: Copyright (c) 2005-2007 Midwinter Laboratories, LLC (http://midwinterlabs.com)
 # License::   The Ruby License
 #
-#  $Id: fragment.rb,v 1.6 2007/07/16 19:28:48 k Exp $
-#
-
-require 'bio/util/restriction_enzyme'
 
 module Bio
+
+require 'bio/util/restriction_enzyme' unless const_defined?(:RestrictionEnzyme)
+
 class RestrictionEnzyme
 class Range
 class SequenceRange
@@ -31,7 +30,7 @@ class Fragment
     df.primary = ''
     df.complement = ''
 
-    both_bins = (@primary_bin + @complement_bin).sort.uniq
+    both_bins = @primary_bin + @complement_bin
     both_bins.each do |item|
       @primary_bin.include?(item) ? df.primary << p_str[item] : df.primary << ' '
       @complement_bin.include?(item) ? df.complement << c_str[item] : df.complement << ' '

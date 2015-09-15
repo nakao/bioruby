@@ -5,7 +5,6 @@
 #               Diana Jaunzeikare <latvianlinuxgirl@gmail.com>
 # License::     The Ruby License
 #
-# $Id:$
 #
 # == Description
 #
@@ -78,15 +77,27 @@ module PhyloXML
     # Initializes LibXML::Reader and reads the file until it reaches the first
     # phylogeny element.
     #
-    # Create a new Bio::PhyloXML::Parser object.
+    # Example: Create a new Bio::PhyloXML::Parser object.
     #
     #   p = Bio::PhyloXML::Parser.open("./phyloxml_examples.xml")
+    #
+    # If the optional code block is given, Bio::PhyloXML object is passed to
+    # the block as an argument. When the block terminates, the Bio::PhyloXML
+    # object is automatically closed, and the open method returns the value
+    # of the block.
+    #
+    # Example: Get the first tree in the file.
+    #
+    #   tree = Bio::PhyloXML::Parser.open("example.xml") do |px|
+    #     px.next_tree
+    #   end
     #
     # ---
     # *Arguments*:
     # * (required) _filename_: Path to the file to parse.
     # * (optional) _validate_: Whether to validate the file against schema or not. Default value is true.
-    # *Returns*:: Bio::PhyloXML::Parser object
+    # *Returns*:: (without block) Bio::PhyloXML::Parser object
+    # *Returns*:: (with block) the value of the block
     def self.open(filename, validate=true)
       obj = new(nil, validate)
       obj.instance_eval {
@@ -98,7 +109,16 @@ module PhyloXML
                                      LibXML::XML::Parser::Options::NONET })
         _skip_leader
       }
-      obj
+      if block_given? then
+        begin
+          ret = yield obj
+        ensure
+          obj.close if obj and !obj.closed?
+        end
+        ret
+      else
+        obj
+      end
     end
 
     # Initializes LibXML::Reader and reads the file until it reaches the first
@@ -108,11 +128,17 @@ module PhyloXML
     #
     #   p = Bio::PhyloXML::Parser.open_uri("http://www.phyloxml.org/examples/apaf.xml")
     #
+    # If the optional code block is given, Bio::PhyloXML object is passed to
+    # the block as an argument. When the block terminates, the Bio::PhyloXML
+    # object is automatically closed, and the open_uri method returns the
+    # value of the block.
+    #
     # ---
     # *Arguments*:
     # * (required) _uri_: (URI or String) URI to the data to parse
     # * (optional) _validate_: For URI reader, the "validate" option is ignored and no validation is executed.
-    # *Returns*:: Bio::PhyloXML::Parser object
+    # *Returns*:: (without block) Bio::PhyloXML::Parser object
+    # *Returns*:: (with block) the value of the block
     def self.open_uri(uri, validate=true)
       case uri
       when URI
@@ -129,7 +155,16 @@ module PhyloXML
         @reader = XML::Reader.file(uri)
         _skip_leader
       }
-      obj
+      if block_given? then
+        begin
+          ret = yield obj
+        ensure
+          obj.close if obj and !obj.closed?
+        end
+        ret
+      else
+        obj
+      end
     end
 
     # Special class for closed PhyloXML::Parser object.
@@ -154,6 +189,18 @@ module PhyloXML
       @reader.close
       @reader = ClosedPhyloXMLParser.new
       nil
+    end
+
+    # If the object is closed by using the close method or equivalent,
+    # returns true. Otherwise, returns false.
+    # ---
+    # *Returns*:: true or false
+    def closed?
+      if @reader.kind_of?(ClosedPhyloXMLParser) then
+        true
+      else
+        false
+      end
     end
 
     # Initializes LibXML::Reader and reads from the IO until it reaches
@@ -211,7 +258,7 @@ module PhyloXML
 
       schema = _schema
       begin
-        flag = xml_instance.validate_schema(schema) do |msg, flag|
+        flag = xml_instance.validate_schema(schema) do |msg, _|
           # The document of libxml-ruby says that the block is called
           # when validation failed, but it seems it is never called
           # even when validation failed!
